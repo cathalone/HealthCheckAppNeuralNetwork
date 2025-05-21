@@ -127,11 +127,11 @@ def loss_func(obtained, expected):
 def save_weights(neural_network):
     for i in range(len(neural_network.weights_)):
         current = neural_network.weights_[i]
-        np.savetxt("weights\weights" + str(i + 1) + ".txt", current)
+        np.savetxt("weights\\weights" + str(i + 1) + ".txt", current)
 
 
 def load_weights(neural_network):
     for i in range(len(neural_network.weights_)):
-        neural_network.weights_[i] = np.loadtxt("weights\weights" + str(i + 1) + ".txt")
+        neural_network.weights_[i] = np.loadtxt("weights\\weights" + str(i + 1) + ".txt")
 
     print("OK")
