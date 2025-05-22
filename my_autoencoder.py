@@ -19,7 +19,7 @@ anomalous_test_data = test_data[~test_labels]
 
 # n = nn.NeuralNetwork([140, 100, 70, 50, 70, 100, 140], ['identity', 'identity', 'identity','identity', 'identity', 'identity', 'sigmoid'], 0, 0.001, 1)
 
-n = nn.NeuralNetwork([140, 70,30,70, 140], ['identity', 'identity','identity', 'identity', 'sigmoid'], 0, 0.001, 1)
+n = nn.NeuralNetwork([249,20, 249], ['identity', 'identity', 'sigmoid'], 0, 0.001, 1)
 
 nn.load_weights(n)
 
@@ -79,7 +79,7 @@ for i in range(10):
     plt.plot(test_data[i], 'b')
     plt.plot(decoded_data[i], 'r')
     plt.title("prediction: " + str(predicted[i]) + ", real: " + str(test_labels[i]))
-    plt.fill_between(np.arange(140), decoded_data[i], test_data[i], color='lightcoral')
+    plt.fill_between(np.arange(249), decoded_data[i], test_data[i], color='lightcoral')
     plt.legend(labels=["Input", "Reconstruction", "Error"])
     plt.show()
 

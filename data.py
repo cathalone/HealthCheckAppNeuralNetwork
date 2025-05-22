@@ -1,19 +1,22 @@
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+import tensorflow as tf
+
+ampsDF = pd.read_csv("E:\\Downloads\\Other Downloads\\signals\\amps.csv")
+amps_data = ampsDF.values
+data = amps_data[:, 0:-1]
+
+labelsDF = pd.read_csv("E:\\Projects\\GitHub\\HealthCheckAppNeuralNetwork\\collected_labels.csv")
+labels = labelsDF.iloc[:,0].values
+
+print(labels)
 
 
-dataframe = pd.read_csv('http://storage.googleapis.com/download.tensorflow.org/data/ecg.csv', header=None)
-raw_data = dataframe.values
-dataframe.head()
 
-labels = raw_data[:, -1]
 
-data = raw_data[:, 0:-1]
-
-train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.2, random_state=21)
+train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.2)
 
 min_val = tf.reduce_min(train_data)
 max_val = tf.reduce_max(train_data)

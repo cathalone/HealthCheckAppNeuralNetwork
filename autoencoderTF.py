@@ -9,31 +9,10 @@ from tensorflow.keras.models import Model
 
 
 # Download the dataset
-dataframe = pd.read_csv('http://storage.googleapis.com/download.tensorflow.org/data/ecg.csv', header=None)
-raw_data = dataframe.values
-dataframe.head()
-
-
-# The last element contains the labels
-labels = raw_data[:, -1]
-
-# The other data points are the electrocadriogram data
-data = raw_data[:, 0:-1]
-
-train_data, test_data, train_labels, test_labels = train_test_split(
-    data, labels, test_size=0.2, random_state=21
-)
-
-
-min_val = tf.reduce_min(train_data)
-max_val = tf.reduce_max(train_data)
-
-
-train_data = (train_data - min_val) / (max_val - min_val)
-test_data = (test_data - min_val) / (max_val - min_val)
-
-train_data = tf.cast(train_data, tf.float32)
-test_data = tf.cast(test_data, tf.float32)
+train_data = np.loadtxt("train_data")
+test_data = np.loadtxt("test_data")
+train_labels = np.loadtxt("train_labels")
+test_labels = np.loadtxt("test_labels")
 
 
 train_labels = train_labels.astype(bool)
@@ -46,30 +25,14 @@ anomalous_train_data = train_data[~train_labels]
 anomalous_test_data = test_data[~test_labels]
 
 
-plt.grid()
-plt.plot(np.arange(140), normal_train_data[0])
-plt.title("Нормальная ЭКГ")
-plt.show()
-
-
-plt.grid()
-plt.plot(np.arange(140), anomalous_train_data[0])
-plt.title("Аномальная ЭКГ")
-plt.show()
-
-
 class AnomalyDetector(Model):
   def __init__(self):
     super(AnomalyDetector, self).__init__()
     self.encoder = tf.keras.Sequential([
-      layers.Dense(32, activation="relu"),
-      layers.Dense(16, activation="relu"),
-      layers.Dense(8, activation="relu")])
+      layers.Dense(20, activation="relu")])
 
     self.decoder = tf.keras.Sequential([
-      layers.Dense(16, activation="relu"),
-      layers.Dense(32, activation="relu"),
-      layers.Dense(140, activation="sigmoid")])
+      layers.Dense(249, activation="sigmoid")])
 
   def call(self, x):
     encoded = self.encoder(x)
@@ -81,8 +44,8 @@ autoencoder = AnomalyDetector()
 autoencoder.compile(optimizer='adam', loss='mse')
 
 history = autoencoder.fit(normal_train_data, normal_train_data,
-          epochs=20,
-          batch_size=512,
+          epochs=100,
+          batch_size=1,
           validation_data=(test_data, test_data),
           shuffle=True)
 
@@ -95,21 +58,11 @@ plt.legend()
 encoded_data = autoencoder.encoder(normal_test_data).numpy()
 decoded_data = autoencoder.decoder(encoded_data).numpy()
 
-plt.plot(normal_test_data[7], 'b')
-plt.plot(decoded_data[7], 'r')
-plt.fill_between(np.arange(140), decoded_data[7], normal_test_data[7], color='lightcoral')
-plt.legend(labels=["Input", "Reconstruction", "Error"])
-plt.show()
 
 
 encoded_data = autoencoder.encoder(anomalous_test_data).numpy()
 decoded_data = autoencoder.decoder(encoded_data).numpy()
 
-plt.plot(anomalous_test_data[0], 'b')
-plt.plot(decoded_data[0], 'r')
-plt.fill_between(np.arange(140), decoded_data[0], anomalous_test_data[0], color='lightcoral')
-plt.legend(labels=["Input", "Reconstruction", "Error"])
-plt.show()
 
 reconstructions = autoencoder.predict(anomalous_train_data)
 train_loss = tf.keras.losses.mse(reconstructions, anomalous_train_data)
@@ -135,11 +88,11 @@ def predict(model, data, threshold):
 
 preds = predict(autoencoder, test_data, threshold)
 
-for i in range(10):
-    plt.plot(test_data[i+10], 'b')
-    plt.plot(decoded_data[i+10], 'r')
-    plt.title("prediction: " + str(np.array(preds[i+10])) + ", real: " + str(test_labels[i+10]))
-    plt.fill_between(np.arange(140), decoded_data[i+10], test_data[i+10], color='lightcoral')
+for i in range(5):
+    plt.plot(test_data[i], 'b')
+    plt.plot(decoded_data[i], 'r')
+    plt.title("prediction: " + str(np.array(preds[i])) + ", real: " + str(test_labels[i]))
+    plt.fill_between(np.arange(249), decoded_data[i], test_data[i], color='lightcoral')
     plt.legend(labels=["Input", "Reconstruction", "Error"])
     plt.show()
 
@@ -149,3 +102,23 @@ for i in range(len(test_data)):
         c += 1
 
 print("Accuracy: ", c/len(test_data)*100, "%")
+
+converter = tf.lite.TFLiteConverter.from_keras_model(autoencoder)
+
+# Конвертация модели
+tflite_model = converter.convert()
+
+# Сохранение .tflite файла
+tflite_model_path = "anomaly_detector.tflite"
+with open(tflite_model_path, 'wb') as f:
+    f.write(tflite_model)
+
+print(f"Модель успешно конвертирована и сохранена как {tflite_model_path}")
+
+# Также сохраните значение threshold, оно понадобится в Android приложении
+threshold_value = threshold #0.00018888764742871296
+print(f"Сохраненное значение порога (threshold): {threshold_value}")
+# Вы можете сохранить это значение в текстовый файл или просто запомнить/скопировать его.
+with open("threshold.txt", "w") as f:
+    f.write(str(threshold_value))
+
