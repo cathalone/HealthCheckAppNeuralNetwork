@@ -29,10 +29,12 @@ class AnomalyDetector(Model):
   def __init__(self):
     super(AnomalyDetector, self).__init__()
     self.encoder = tf.keras.Sequential([
+      layers.Dense(40, activation="relu"),
       layers.Dense(20, activation="relu")])
 
     self.decoder = tf.keras.Sequential([
-      layers.Dense(249, activation="sigmoid")])
+      layers.Dense(40, activation="relu"),
+      layers.Dense(250, activation="sigmoid")])
 
   def call(self, x):
     encoded = self.encoder(x)
@@ -45,7 +47,7 @@ autoencoder.compile(optimizer='adam', loss='mse')
 
 history = autoencoder.fit(normal_train_data, normal_train_data,
           epochs=100,
-          batch_size=1,
+          batch_size=4,
           validation_data=(test_data, test_data),
           shuffle=True)
 
@@ -92,7 +94,7 @@ for i in range(5):
     plt.plot(test_data[i], 'b')
     plt.plot(decoded_data[i], 'r')
     plt.title("prediction: " + str(np.array(preds[i])) + ", real: " + str(test_labels[i]))
-    plt.fill_between(np.arange(249), decoded_data[i], test_data[i], color='lightcoral')
+    plt.fill_between(np.arange(250), decoded_data[i], test_data[i], color='lightcoral')
     plt.legend(labels=["Input", "Reconstruction", "Error"])
     plt.show()
 
@@ -115,10 +117,8 @@ with open(tflite_model_path, 'wb') as f:
 
 print(f"Модель успешно конвертирована и сохранена как {tflite_model_path}")
 
-# Также сохраните значение threshold, оно понадобится в Android приложении
-threshold_value = threshold #0.00018888764742871296
+threshold_value = threshold
 print(f"Сохраненное значение порога (threshold): {threshold_value}")
-# Вы можете сохранить это значение в текстовый файл или просто запомнить/скопировать его.
 with open("threshold.txt", "w") as f:
     f.write(str(threshold_value))
 

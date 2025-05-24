@@ -4,17 +4,14 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
-ampsDF = pd.read_csv("E:\\Downloads\\Other Downloads\\signals\\amps.csv")
+ampsDF = pd.read_csv("E:\\Downloads\\Other Downloads\\signals\\amps.csv", sep=',', header=None)
 amps_data = ampsDF.values
-data = amps_data[:, 0:-1]
+data = amps_data
 
-labelsDF = pd.read_csv("E:\\Projects\\GitHub\\HealthCheckAppNeuralNetwork\\collected_labels.csv")
+labelsDF = pd.read_csv("E:\\Projects\\GitHub\\HealthCheckAppNeuralNetwork\\collected_labels.csv", header=None)
 labels = labelsDF.iloc[:,0].values
 
-print(labels)
-
-
-
+print(len(data[0]))
 
 train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.2)
 

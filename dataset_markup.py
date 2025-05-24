@@ -27,10 +27,10 @@ def plot_ecg_signals_and_amps(signal_data, amp_data, fig_to_plot_on):
 path_amps_csv = "E:\\Downloads\\Other Downloads\\signals\\amps.csv"
 path_signals_csv = "E:\\Downloads\\Other Downloads\\signals\\signals.csv"
 
-ampsDF = pd.read_csv(path_amps_csv)
+ampsDF = pd.read_csv(path_amps_csv, sep=',', header=None)
 amps_data = ampsDF.values
 
-signalsDF = pd.read_csv(path_signals_csv)
+signalsDF = pd.read_csv(path_signals_csv, sep=',', header=None)
 signals_data = signalsDF.values
 
 print("Данные успешно загружены из CSV файлов.")
@@ -54,7 +54,6 @@ for i in range(len(signals_data)):
 
     plot_ecg_signals_and_amps(current_signal, current_amp, fig)
 
-    # КЛЮЧЕВЫЕ СТРОКИ для неблокирующего отображения:
     fig.canvas.draw_idle()
     plt.pause(0.1)
 
